@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react';
 import clsx from 'clsx';
 import { Pencil, Eraser, Trash2, Undo, Redo, ChevronDown, Download, Image, Copy, Menu } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -588,6 +589,7 @@ const App = () => {
 					{renderMobileSettingsSheet()}
 				</>
 			)}
+			<Analytics />
 		</div>
 	);
 };
