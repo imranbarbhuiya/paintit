@@ -47,7 +47,7 @@ const App = () => {
 		if (stageRef.current) {
 			const uri = stageRef.current.toDataURL({ pixelRatio: 2 });
 			const link = document.createElement('a');
-			link.download = 'drawing-board.png';
+			link.download = 'drawing.png';
 			link.href = uri;
 			document.body.appendChild(link);
 			link.click();
@@ -462,7 +462,10 @@ const App = () => {
 	return (
 		<div className="relative h-screen w-screen bg-slate-50">
 			<nav className="fixed top-0 right-0 left-0 z-50 flex items-center justify-between border-b border-gray-200 bg-white/95 px-6 py-3 backdrop-blur-sm">
-				<h1 className="text-xl font-semibold text-gray-800">Swoosh</h1>
+				<div className="flex items-center gap-2">
+					<img alt="PaintIt logo" className="h-8 w-8" src="/icon.png" />
+					<h1 className="text-xl font-semibold text-gray-800">PaintIt</h1>
+				</div>
 				<div className="flex items-center">
 					<Button className="gap-2 rounded-r-none border-r-0" onClick={handleExportPNG} size="sm" variant="outline">
 						<Download size={16} />
@@ -523,7 +526,7 @@ const App = () => {
 							handleMouseDown(event);
 						}}
 						ref={stageRef}
-						style={{ background: 'transparent', touchAction: 'none' }}
+						style={{ touchAction: 'none' }}
 						width={window.innerWidth}
 					>
 						<Layer>
