@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { Pencil, Eraser, Trash2, Undo, Redo, ChevronDown, Download, Image, Copy, Menu } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Stage, Layer, Line } from 'react-konva';
+import { Stage, Layer, Line, Rect } from 'react-konva';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+
+import type Konva from 'konva';
 
 type Tool = 'pen' | 'eraser';
 
@@ -26,18 +28,27 @@ const PREDEFINED_COLORS = ['#df4b26', '#000000', '#ffffff', '#1e90ff', '#32cd32'
 
 const SIZE_OPTIONS = [2, 4, 6, 8, 12, 16, 20, 24];
 
+const getInitialLines = () => {
+	try {
+		const stored = localStorage.getItem('drawing-lines');
+		if (stored) return JSON.parse(stored);
+	} catch {}
+	return [];
+};
+
 const App = () => {
 	const [tool, setTool] = useState<Tool>('pen');
-	const [lines, setLines] = useState<DrawingLine[]>([]);
-	const [history, setHistory] = useState<DrawingLine[][]>([[]]);
+	const [lines, setLines] = useState<DrawingLine[]>(getInitialLines);
+	const [history, setHistory] = useState<DrawingLine[][]>(() => [getInitialLines()]);
 	const [historyStep, setHistoryStep] = useState(0);
 	const [color, setColor] = useState<string>(PREDEFINED_COLORS[0]);
 	const [showToolbox, setShowToolbox] = useState(true);
 	const [penSize, setPenSize] = useState<number>(6);
 	const [eraserSize, setEraserSize] = useState<number>(12);
 	const [mobileToolboxOpen, setMobileToolboxOpen] = useState(false);
+	const [transparentBg, setTransparentBg] = useState(false);
 	const isDrawing = useRef(false);
-	const stageRef = useRef<any>(null);
+	const stageRef = useRef<Konva.Stage>(null);
 	const isMobile = useIsMobile();
 
 	const currentSize = tool === 'pen' ? penSize : eraserSize;
@@ -119,18 +130,27 @@ const App = () => {
 		return () => window.removeEventListener('keydown', handleKeyDown);
 	}, [handleExportPNG, handleCopyToClipboard, handleUndo, handleRedo]);
 
-	const handleMouseDown = (event: any) => {
+	useEffect(() => {
+		try {
+			localStorage.setItem('drawing-lines', JSON.stringify(lines));
+		} catch {}
+	}, [lines]);
+
+	const handleMouseDown = (event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
 		isDrawing.current = true;
 		setShowToolbox(false);
-		const pos = event.target.getStage().getPointerPosition();
+		const pos = event.target.getStage()?.getPointerPosition();
+		if (!pos) return;
 		const newLine: DrawingLine = { tool, points: [pos.x, pos.y], color, size: currentSize };
 		setLines((prevLines) => [...prevLines, newLine]);
 	};
 
-	const handleMouseMove = (event: any) => {
+	const handleMouseMove = (event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
 		if (!isDrawing.current) return;
 		const stage = event.target.getStage();
-		const point = stage.getPointerPosition();
+		const point = stage?.getPointerPosition();
+		if (!point) return;
+
 		setLines((prevLines) => {
 			if (prevLines.length === 0) return prevLines;
 			const lastLine = prevLines[prevLines.length - 1];
@@ -154,6 +174,9 @@ const App = () => {
 		setLines([]);
 		setHistory((prevHistory) => [...prevHistory.slice(0, historyStep + 1), []]);
 		setHistoryStep((prev) => prev + 1);
+		try {
+			localStorage.setItem('drawing-lines', JSON.stringify([]));
+		} catch {}
 	};
 
 	const handleToolClick = (selectedTool: Tool) => {
@@ -482,7 +505,7 @@ const App = () => {
 								<ChevronDown size={14} />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" className="w-48">
+						<DropdownMenuContent align="end" className="w-56">
 							<DropdownMenuItem className="flex cursor-pointer items-center gap-2" onClick={handleExportPNG}>
 								<Image size={16} />
 								<span>Save PNG</span>
@@ -507,6 +530,17 @@ const App = () => {
 									</kbd>
 								</div>
 							</DropdownMenuItem>
+							<div className="mt-2 border-t border-gray-100 px-3 py-2">
+								<label className="flex cursor-pointer items-center gap-2 text-sm select-none">
+									<input
+										checked={transparentBg}
+										className="h-4 w-4 rounded accent-indigo-500"
+										onChange={(event) => setTransparentBg(event.target.checked)}
+										type="checkbox"
+									/>
+									Transparent background
+								</label>
+							</div>
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>
@@ -534,6 +568,11 @@ const App = () => {
 						style={{ touchAction: 'none' }}
 						width={window.innerWidth}
 					>
+						{!transparentBg && (
+							<Layer>
+								<Rect fill="#f8fafc" height={window.innerHeight - 64} width={window.innerWidth} x={0} y={0} />
+							</Layer>
+						)}
 						<Layer>
 							{lines.map((line, idx) => (
 								<Line key={idx} {...getLineProps(line)} />
