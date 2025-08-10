@@ -335,6 +335,26 @@ const App = () => {
 			>
 				<Eraser size={20} />
 			</button>
+			<div className="mt-2 flex flex-col gap-2">
+				<button
+					aria-label="Undo"
+					className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-all duration-200 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+					disabled={historyStep <= 0}
+					onClick={handleUndo}
+					type="button"
+				>
+					<Undo size={18} />
+				</button>
+				<button
+					aria-label="Redo"
+					className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-all duration-200 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+					disabled={historyStep >= history.length - 1}
+					onClick={handleRedo}
+					type="button"
+				>
+					<Redo size={18} />
+				</button>
+			</div>
 		</div>
 	);
 
@@ -377,14 +397,17 @@ const App = () => {
 									))}
 								</div>
 								<div className="flex items-center gap-3">
+									<label className="cursor-pointer text-sm text-gray-500 select-none" htmlFor="mobile-custom-color">
+										Custom Color
+									</label>
 									<input
 										aria-label="Pick a custom color"
 										className="h-8 w-8 cursor-pointer rounded-full border-2 border-gray-300 transition-all duration-200 hover:border-gray-400"
+										id="mobile-custom-color"
 										onChange={(event) => setColor(event.target.value)}
 										type="color"
 										value={color}
 									/>
-									<span className="text-sm text-gray-500">Custom Color</span>
 								</div>
 							</div>
 						</div>
@@ -425,24 +448,6 @@ const App = () => {
 								<span className="text-sm font-medium text-gray-700">Actions</span>
 							</div>
 							<div className="flex items-center gap-2">
-								<button
-									aria-label="Undo"
-									className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-all duration-200 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
-									disabled={historyStep <= 0}
-									onClick={handleUndo}
-									type="button"
-								>
-									<Undo size={18} />
-								</button>
-								<button
-									aria-label="Redo"
-									className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-all duration-200 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
-									disabled={historyStep >= history.length - 1}
-									onClick={handleRedo}
-									type="button"
-								>
-									<Redo size={18} />
-								</button>
 								<button
 									aria-label="Clear canvas"
 									className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600 transition-all duration-200 hover:bg-red-200"
